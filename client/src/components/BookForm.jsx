@@ -3,12 +3,12 @@ import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion } from "framer-motion";
 import axios from "axios";
+import BASE_URL from "../services/api"; // ✅ Import base URL
 
-// Helper for vibrant gradients - can be adjusted
 const gradientColors = "from-blue-500 via-purple-600 to-pink-500";
 const buttonGradient = "from-purple-600 to-pink-500";
 
-function BookForm({ onUploaded }) { // Destructure onUploaded prop
+function BookForm({ onUploaded }) {
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [description, setDescription] = useState("");
@@ -17,7 +17,7 @@ function BookForm({ onUploaded }) { // Destructure onUploaded prop
   const [status, setStatus] = useState("");
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const maxSize = 5 * 1024 * 1024; // 5MB
+  const maxSize = 5 * 1024 * 1024;
 
   const onDrop = useCallback((acceptedFiles, fileRejections) => {
     if (fileRejections.length > 0) {
@@ -34,12 +34,7 @@ function BookForm({ onUploaded }) { // Destructure onUploaded prop
     setStatus("✅ Image selected!");
   }, []);
 
-  const {
-    getRootProps,
-    getInputProps,
-    isDragActive,
-    open
-  } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
     accept: { "image/jpeg": [], "image/png": [] },
     maxSize,
@@ -65,7 +60,7 @@ function BookForm({ onUploaded }) { // Destructure onUploaded prop
     formData.append("coverImage", cover);
 
     try {
-      await axios.post("http://localhost:5000/api/books", formData, {
+      await axios.post(`${BASE_URL}/api/books`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
         onUploadProgress: (progressEvent) => {
           const percent = Math.round(
@@ -82,7 +77,7 @@ function BookForm({ onUploaded }) { // Destructure onUploaded prop
       setCover(null);
       setPreview(null);
       setUploadProgress(0);
-      if (onUploaded) { // Call onUploaded prop if it exists
+      if (onUploaded) {
         onUploaded();
       }
     } catch (err) {
@@ -106,121 +101,30 @@ function BookForm({ onUploaded }) { // Destructure onUploaded prop
       </h2>
 
       <div className="space-y-4">
-        <div>
-          <label htmlFor="title" className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Book Title</label>
-          <input
-            id="title"
-            type="text"
-            placeholder="e.g., The Midnight Library"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full p-2.5 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-200 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:focus:border-blue-400 dark:focus:ring-blue-800 transition text-sm"
-          />
-        </div>
+        <inputField label="Book Title" id="title" value={title} setValue={setTitle} placeholder="e.g., The Midnight Library" />
+        <inputField label="Author Name" id="author" value={author} setValue={setAuthor} placeholder="e.g., Matt Haig" />
+        <textareaField label="Book Description" id="description" value={description} setValue={setDescription} placeholder="A brief summary of your book..." />
 
-        <div>
-          <label htmlFor="author" className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Author Name</label>
-          <input
-            id="author"
-            type="text"
-            placeholder="e.g., Matt Haig"
-            value={author}
-            onChange={(e) => setAuthor(e.target.value)}
-            className="w-full p-2.5 rounded-lg border border-gray-300 focus:border-purple-500 focus:ring-1 focus:ring-purple-200 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:focus:border-purple-400 dark:focus:ring-purple-800 transition text-sm"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="description" className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Book Description</label>
-          <textarea
-            id="description"
-            placeholder="A brief summary of your book..."
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows="4"
-            className="w-full p-2.5 rounded-lg border border-gray-300 focus:border-pink-500 focus:ring-1 focus:ring-pink-200 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:focus:border-pink-400 dark:focus:ring-pink-800 transition resize-y text-sm"
-          />
-        </div>
-
-        {/* ✅ Smaller Drag & Drop Area */}
+        {/* Drag & Drop Image */}
         <div
           {...getRootProps()}
-          className={`
-            relative flex flex-col items-center justify-center p-3 rounded-md border-2 transition-colors duration-300 ease-in-out group
-            ${isDragActive
-              ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-              : "border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50"
-            }
-            hover:border-blue-400 hover:bg-blue-50/70 dark:hover:border-blue-500 dark:hover:bg-blue-900/30 cursor-pointer
-          `}
+          className={`relative flex flex-col items-center justify-center p-3 rounded-md border-2 transition-colors group
+            ${isDragActive ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : "border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50"}
+            hover:border-blue-400 hover:bg-blue-50/70 dark:hover:border-blue-500 dark:hover:bg-blue-900/30 cursor-pointer`}
           onClick={open}
         >
           <input {...getInputProps()} />
           {preview ? (
-            <div className="relative w-20 h-20 mb-1 rounded-sm overflow-hidden shadow-sm">
-              <img
-                src={preview}
-                alt="Book Cover Preview"
-                className="w-full h-full object-contain rounded-sm"
-              />
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setPreview(null);
-                  setCover(null);
-                  setStatus("Image removed.");
-                }}
-                className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-0.5 text-[0.6rem] hover:bg-red-600 transition-colors"
-                aria-label="Remove image"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          ) : (
-            <>
-              <svg
-                className="w-8 h-8 text-gray-400 group-hover:text-blue-500 dark:text-gray-500 dark:group-hover:text-blue-400 transition-colors duration-200"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="1.5"
-                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                ></path>
-              </svg>
-              <p className="mt-1 text-sm font-medium text-gray-700 dark:text-gray-300">
-                Drag or <span className={`text-blue-600 dark:text-blue-400 font-bold hover:underline`}>Browse</span>
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                (max 5MB)
-              </p>
-              {isDragActive && (
-                <p className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-blue-500/10 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-semibold rounded-md animate-pulse text-xs">
-                  Drop here!
-                </p>
-              )}
-            </>
-          )}
+            <PreviewImage preview={preview} onRemove={() => {
+              setPreview(null);
+              setCover(null);
+              setStatus("Image removed.");
+            }} />
+          ) : <UploadPlaceholder isDragActive={isDragActive} />}
         </div>
 
-        {/* ✅ Upload Progress */}
         {uploadProgress > 0 && uploadProgress < 100 && (
-          <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mt-3">
-            <motion.div
-              className={`h-2.5 rounded-full bg-gradient-to-r ${gradientColors}`}
-              style={{ width: `${uploadProgress}%` }}
-              initial={{ width: 0 }}
-              animate={{ width: `${uploadProgress}%` }}
-              transition={{ duration: 0.3 }}
-            ></motion.div>
-          </div>
+          <ProgressBar progress={uploadProgress} />
         )}
 
         <motion.button
@@ -232,11 +136,7 @@ function BookForm({ onUploaded }) { // Destructure onUploaded prop
         >
           {uploadProgress > 0 && uploadProgress < 100 ? (
             <span className="flex items-center justify-center text-sm">
-              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Uploading {uploadProgress}%
+              <SpinnerIcon /> Uploading {uploadProgress}%
             </span>
           ) : (
             "🚀 Upload Book"
@@ -257,5 +157,88 @@ function BookForm({ onUploaded }) { // Destructure onUploaded prop
     </form>
   );
 }
+
+// Helper components
+const inputField = ({ label, id, value, setValue, placeholder }) => (
+  <div>
+    <label htmlFor={id} className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">{label}</label>
+    <input
+      id={id}
+      type="text"
+      placeholder={placeholder}
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      className="w-full p-2.5 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-200 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:focus:border-blue-400 dark:focus:ring-blue-800 transition text-sm"
+    />
+  </div>
+);
+
+const textareaField = ({ label, id, value, setValue, placeholder }) => (
+  <div>
+    <label htmlFor={id} className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">{label}</label>
+    <textarea
+      id={id}
+      placeholder={placeholder}
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      rows="4"
+      className="w-full p-2.5 rounded-lg border border-gray-300 focus:border-pink-500 focus:ring-1 focus:ring-pink-200 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:focus:border-pink-400 dark:focus:ring-pink-800 transition resize-y text-sm"
+    />
+  </div>
+);
+
+const PreviewImage = ({ preview, onRemove }) => (
+  <div className="relative w-20 h-20 mb-1 rounded-sm overflow-hidden shadow-sm">
+    <img src={preview} alt="Book Cover Preview" className="w-full h-full object-contain rounded-sm" />
+    <button type="button" onClick={(e) => {
+      e.stopPropagation();
+      onRemove();
+    }} className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-0.5 text-[0.6rem] hover:bg-red-600 transition-colors" aria-label="Remove image">
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+);
+
+const UploadPlaceholder = ({ isDragActive }) => (
+  <>
+    <svg className="w-8 h-8 text-gray-400 group-hover:text-blue-500 dark:text-gray-500 dark:group-hover:text-blue-400 transition-colors duration-200"
+      fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"
+        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+    </svg>
+    <p className="mt-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+      Drag or <span className="text-blue-600 dark:text-blue-400 font-bold hover:underline">Browse</span>
+    </p>
+    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">(max 5MB)</p>
+    {isDragActive && (
+      <p className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-blue-500/10 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-semibold rounded-md animate-pulse text-xs">
+        Drop here!
+      </p>
+    )}
+  </>
+);
+
+const ProgressBar = ({ progress }) => (
+  <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mt-3">
+    <motion.div
+      className={`h-2.5 rounded-full bg-gradient-to-r ${gradientColors}`}
+      style={{ width: `${progress}%` }}
+      initial={{ width: 0 }}
+      animate={{ width: `${progress}%` }}
+      transition={{ duration: 0.3 }}
+    ></motion.div>
+  </div>
+);
+
+const SpinnerIcon = () => (
+  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+    viewBox="0 0 24 24" stroke="currentColor">
+    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+    <path className="opacity-75" fill="currentColor"
+      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+  </svg>
+);
 
 export default BookForm;

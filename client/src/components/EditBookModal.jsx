@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import BASE_URL from "../services/api";
 
 export default function EditBookModal({ book, onClose, onUpdate, showToast }) {
   const [title, setTitle] = useState(book.title);
@@ -17,48 +18,74 @@ export default function EditBookModal({ book, onClose, onUpdate, showToast }) {
     if (cover) formData.append("coverImage", cover);
 
     try {
-      const res = await axios.put(`http://localhost:5000/api/books/${book._id}`, formData);
+      await axios.put(`${BASE_URL}/api/books/${book._id}`, formData);
       showToast("✅ Book updated!", "success");
       onUpdate();
       onClose();
-    } catch {
+    } catch (error) {
+      console.error("Update error:", error);
       showToast("❌ Update failed", "error");
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <form onSubmit={handleUpdate} className="bg-white dark:bg-zinc-900 p-6 rounded-xl w-[90%] max-w-lg shadow-lg">
-        <h2 className="text-xl font-bold mb-4 text-purple-700 dark:text-purple-300">✏️ Edit Book</h2>
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+      <form
+        onSubmit={handleUpdate}
+        className="bg-white dark:bg-zinc-900 p-6 rounded-xl w-[90%] max-w-lg shadow-lg space-y-4"
+      >
+        <h2 className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+          ✏️ Edit Book
+        </h2>
+
         <input
-          className="w-full p-3 rounded-lg border mb-3"
+          type="text"
+          required
+          className="w-full p-3 rounded-lg border dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 dark:text-white"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Title"
         />
+
         <input
-          className="w-full p-3 rounded-lg border mb-3"
+          type="text"
+          required
+          className="w-full p-3 rounded-lg border dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 dark:text-white"
           value={author}
           onChange={(e) => setAuthor(e.target.value)}
           placeholder="Author"
         />
+
         <textarea
-          className="w-full p-3 rounded-lg border mb-3"
+          required
+          rows="4"
+          className="w-full p-3 rounded-lg border dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 dark:text-white"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Description"
         />
+
         <input
           type="file"
-          onChange={(e) => setCover(e.target.files[0])}
-          className="mb-4"
           accept="image/jpeg,image/png"
+          onChange={(e) => setCover(e.target.files[0])}
+          className="w-full text-sm text-gray-600 dark:text-gray-300"
         />
-        <div className="flex justify-between">
-          <button type="submit" className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">
+
+        <div className="flex justify-end gap-4 pt-4">
+          <button
+            type="submit"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded shadow-sm"
+          >
             Update
           </button>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">Cancel</button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-gray-600 dark:text-gray-300 hover:underline"
+          >
+            Cancel
+          </button>
         </div>
       </form>
     </div>

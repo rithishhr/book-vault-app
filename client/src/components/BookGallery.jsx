@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDropzone } from "react-dropzone";
+import BASE_URL from "../services/api";
 
 // Re-using gradients for consistency
 const primaryGradient = "from-blue-500 via-purple-600 to-pink-500";
@@ -114,16 +115,14 @@ function BookGallery({ galleryRefreshKey }) {
       data.append("coverImage", formData.coverImage);
     }
 
-    try {
-      await axios.put(`http://localhost:5000/api/books/${editingBook}`, data, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      setStatus("✅ Book updated successfully!");
-      handleModalClose();
-      fetchBooks(); // Re-fetch books to show updated data
-    } catch (err) {
-      console.error("Error updating book:", err.response ? err.response.data : err.message);
-      setStatus("❌ Update failed. Please try again.");
+     try {
+      await axios.put(`${BASE_URL}/api/books/${book._id}`, formData);
+      showToast("✅ Book updated!", "success");
+      onUpdate();
+      onClose();
+    } catch (error) {
+      console.error("Update error:", error);
+      showToast("❌ Update failed", "error");
     }
   };
 
