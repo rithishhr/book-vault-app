@@ -12,6 +12,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// ✅ Optional root route to avoid "Cannot GET /"
+app.get('/', (req, res) => {
+  res.send('📚 Book Vault API is running!');
+});
+
 // ✅ This connects the routes
 app.use('/api/books', booksRouter);
 
