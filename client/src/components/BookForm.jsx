@@ -1,9 +1,8 @@
-// client/src/components/BookForm.jsx
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion } from "framer-motion";
 import axios from "axios";
-import BASE_URL from "../services/api"; // ✅ Import base URL
+import BASE_URL from "../services/api";
 
 const gradientColors = "from-blue-500 via-purple-600 to-pink-500";
 const buttonGradient = "from-purple-600 to-pink-500";
@@ -77,11 +76,9 @@ function BookForm({ onUploaded }) {
       setCover(null);
       setPreview(null);
       setUploadProgress(0);
-      if (onUploaded) {
-        onUploaded();
-      }
+      if (onUploaded) onUploaded();
     } catch (err) {
-      console.error("Upload Error:", err.response ? err.response.data : err.message);
+      console.error("Upload Error:", err.response?.data || err.message);
       setStatus("❌ Upload failed. Please try again.");
     }
   };
@@ -89,27 +86,27 @@ function BookForm({ onUploaded }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-4 max-w-sm mx-auto p-5 rounded-xl shadow-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700"
+      className="space-y-4 max-w-sm mx-auto p-5 rounded-xl shadow-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 relative"
     >
-      <div className={`absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r ${gradientColors} rounded-t-xl`}></div>
+      <div className={`absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r ${gradientColors} rounded-t-xl`} />
 
-      <h2 className="text-2xl font-extrabold text-center text-gray-900 dark:text-white mb-6 relative">
-        <span className={`bg-clip-text text-transparent bg-gradient-to-r ${gradientColors}`}>
+      <h2 className="text-2xl font-extrabold text-center text-gray-900 dark:text-white mb-6">
+        <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500">
           Add Your Book
         </span>
-        <span className="block w-16 h-1 bg-gradient-to-r from-purple-500 to-pink-500 mx-auto mt-1.5 rounded-full"></span>
+        <span className="block w-16 h-1 bg-gradient-to-r from-purple-500 to-pink-500 mx-auto mt-1.5 rounded-full" />
       </h2>
 
       <div className="space-y-4">
-        <inputField label="Book Title" id="title" value={title} setValue={setTitle} placeholder="e.g., The Midnight Library" />
-        <inputField label="Author Name" id="author" value={author} setValue={setAuthor} placeholder="e.g., Matt Haig" />
-        <textareaField label="Book Description" id="description" value={description} setValue={setDescription} placeholder="A brief summary of your book..." />
+        <InputField label="Book Title" id="title" value={title} setValue={setTitle} placeholder="e.g., The Midnight Library" />
+        <InputField label="Author Name" id="author" value={author} setValue={setAuthor} placeholder="e.g., Matt Haig" />
+        <TextareaField label="Book Description" id="description" value={description} setValue={setDescription} placeholder="A brief summary of your book..." />
 
-        {/* Drag & Drop Image */}
+        {/* Small Dropzone */}
         <div
           {...getRootProps()}
-          className={`relative flex flex-col items-center justify-center p-3 rounded-md border-2 transition-colors group
-            ${isDragActive ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : "border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50"}
+          className={`relative flex flex-col items-center justify-center px-4 py-3 w-36 h-36 mx-auto border-2 border-dashed rounded-md transition-colors group
+            ${isDragActive ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : "border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50"}
             hover:border-blue-400 hover:bg-blue-50/70 dark:hover:border-blue-500 dark:hover:bg-blue-900/30 cursor-pointer`}
           onClick={open}
         >
@@ -123,9 +120,7 @@ function BookForm({ onUploaded }) {
           ) : <UploadPlaceholder isDragActive={isDragActive} />}
         </div>
 
-        {uploadProgress > 0 && uploadProgress < 100 && (
-          <ProgressBar progress={uploadProgress} />
-        )}
+        {uploadProgress > 0 && uploadProgress < 100 && <ProgressBar progress={uploadProgress} />}
 
         <motion.button
           whileHover={{ scale: 1.02 }}
@@ -158,8 +153,8 @@ function BookForm({ onUploaded }) {
   );
 }
 
-// Helper components
-const inputField = ({ label, id, value, setValue, placeholder }) => (
+// Capitalized helper components
+const InputField = ({ label, id, value, setValue, placeholder }) => (
   <div>
     <label htmlFor={id} className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">{label}</label>
     <input
@@ -173,7 +168,7 @@ const inputField = ({ label, id, value, setValue, placeholder }) => (
   </div>
 );
 
-const textareaField = ({ label, id, value, setValue, placeholder }) => (
+const TextareaField = ({ label, id, value, setValue, placeholder }) => (
   <div>
     <label htmlFor={id} className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">{label}</label>
     <textarea
@@ -181,7 +176,7 @@ const textareaField = ({ label, id, value, setValue, placeholder }) => (
       placeholder={placeholder}
       value={value}
       onChange={(e) => setValue(e.target.value)}
-      rows="4"
+      rows="3"
       className="w-full p-2.5 rounded-lg border border-gray-300 focus:border-pink-500 focus:ring-1 focus:ring-pink-200 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:focus:border-pink-400 dark:focus:ring-pink-800 transition resize-y text-sm"
     />
   </div>
@@ -190,10 +185,15 @@ const textareaField = ({ label, id, value, setValue, placeholder }) => (
 const PreviewImage = ({ preview, onRemove }) => (
   <div className="relative w-20 h-20 mb-1 rounded-sm overflow-hidden shadow-sm">
     <img src={preview} alt="Book Cover Preview" className="w-full h-full object-contain rounded-sm" />
-    <button type="button" onClick={(e) => {
-      e.stopPropagation();
-      onRemove();
-    }} className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-0.5 text-[0.6rem] hover:bg-red-600 transition-colors" aria-label="Remove image">
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onRemove();
+      }}
+      className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-0.5 text-[0.6rem] hover:bg-red-600 transition-colors"
+      aria-label="Remove image"
+    >
       <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
       </svg>
@@ -203,15 +203,15 @@ const PreviewImage = ({ preview, onRemove }) => (
 
 const UploadPlaceholder = ({ isDragActive }) => (
   <>
-    <svg className="w-8 h-8 text-gray-400 group-hover:text-blue-500 dark:text-gray-500 dark:group-hover:text-blue-400 transition-colors duration-200"
+    <svg className="w-5 h-5 text-gray-400 group-hover:text-blue-500 dark:text-gray-500 dark:group-hover:text-blue-400 transition-colors duration-200"
       fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"
         d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
     </svg>
-    <p className="mt-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+    <p className="mt-1 text-xs font-medium text-gray-700 dark:text-gray-300">
       Drag or <span className="text-blue-600 dark:text-blue-400 font-bold hover:underline">Browse</span>
     </p>
-    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">(max 5MB)</p>
+    <p className="text-[0.65rem] text-gray-500 dark:text-gray-400">(max 5MB)</p>
     {isDragActive && (
       <p className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-blue-500/10 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-semibold rounded-md animate-pulse text-xs">
         Drop here!
